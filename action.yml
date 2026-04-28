@@ -16,27 +16,22 @@ inputs:
 runs:
   using: 'composite'
   steps:
-    - name: Checkout baseline templates
-      uses: actions/checkout@v4
-      with:
-        repository: wyre-technology/mcp-eval-baseline
-        ref: ${{ github.action_ref }}
-        path: .mcp-eval-baseline
-
     - name: Render baseline templates
       shell: bash
       env:
         ENTRY: ${{ inputs.entry }}
         CANARY_TOOL: ${{ inputs.canary-tool }}
+        ACTION_PATH: ${{ github.action_path }}
+        EXTRA_SUITE: ${{ inputs.extra-suite }}
       run: |
         set -euo pipefail
         mkdir -p .mcp-eval-rendered
-        for tpl in .mcp-eval-baseline/templates/*.yaml; do
+        for tpl in "$ACTION_PATH"/templates/*.yaml; do
           out=".mcp-eval-rendered/$(basename "$tpl")"
           envsubst < "$tpl" > "$out"
         done
-        if [ -n "${{ inputs.extra-suite }}" ] && [ -d "${{ inputs.extra-suite }}" ]; then
-          cp "${{ inputs.extra-suite }}"/*.yaml .mcp-eval-rendered/ || true
+        if [ -n "$EXTRA_SUITE" ] && [ -d "$EXTRA_SUITE" ]; then
+          cp "$EXTRA_SUITE"/*.yaml .mcp-eval-rendered/ || true
         fi
         echo "--- Rendered suite ---"
         ls -la .mcp-eval-rendered/
