@@ -20,6 +20,7 @@ runs:
       uses: actions/checkout@v4
       with:
         repository: wyre-technology/mcp-eval-baseline
+        ref: ${{ github.action_ref }}
         path: .mcp-eval-baseline
 
     - name: Render baseline templates
