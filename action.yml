@@ -1,0 +1,46 @@
+name: 'WYRE MCP Eval Baseline'
+description: 'Run the shared wyre-technology mcp-assert baseline against an MCP server'
+
+inputs:
+  entry:
+    description: 'Path to the MCP server entry point (e.g. dist/index.js)'
+    required: true
+  canary-tool:
+    description: 'Name of one tool to use for protocol-level assertions (any read-only tool)'
+    required: true
+  extra-suite:
+    description: 'Optional path to a repo-local evals/ directory to run alongside the baseline'
+    required: false
+    default: ''
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Checkout baseline templates
+      uses: actions/checkout@v4
+      with:
+        repository: wyre-technology/mcp-eval-baseline
+        path: .mcp-eval-baseline
+
+    - name: Render baseline templates
+      shell: bash
+      env:
+        ENTRY: ${{ inputs.entry }}
+        CANARY_TOOL: ${{ inputs.canary-tool }}
+      run: |
+        set -euo pipefail
+        mkdir -p .mcp-eval-rendered
+        for tpl in .mcp-eval-baseline/templates/*.yaml; do
+          out=".mcp-eval-rendered/$(basename "$tpl")"
+          envsubst < "$tpl" > "$out"
+        done
+        if [ -n "${{ inputs.extra-suite }}" ] && [ -d "${{ inputs.extra-suite }}" ]; then
+          cp "${{ inputs.extra-suite }}"/*.yaml .mcp-eval-rendered/ || true
+        fi
+        echo "--- Rendered suite ---"
+        ls -la .mcp-eval-rendered/
+
+    - name: Run mcp-assert
+      uses: blackwell-systems/mcp-assert-action@v1
+      with:
+        suite: .mcp-eval-rendered/

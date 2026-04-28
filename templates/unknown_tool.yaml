@@ -1,0 +1,10 @@
+name: server rejects unknown tool with JSON-RPC -32601
+server:
+  command: node
+  args: [${ENTRY}]
+assert:
+  tool: this_tool_does_not_exist_xyz
+  args: {}
+  expect:
+    is_error: true
+timeout: 30s
