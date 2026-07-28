@@ -40,3 +40,9 @@ runs:
       uses: blackwell-systems/mcp-assert-action@v1
       with:
         suite: .mcp-eval-rendered/
+        # Pinned instead of the action's own 'latest' default: resolving
+        # latest re-runs an unauthenticated curl against api.github.com on
+        # every fleet CI run (dozens of *-mcp repos x every push/PR), which
+        # intermittently 403s under shared-runner-IP rate limiting. Pinning
+        # removes the live API dependency entirely. Bump deliberately.
+        version: v0.12.3
